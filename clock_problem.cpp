@@ -6,25 +6,29 @@ using namespace std;
 struct combined {
     string array_;
     int quan;
+    int maxim;
 };
+
+const int base = 30;
+const int n = 8;
+const int arr_def_size = 2*(base - 1)*n;
 
 
 int BinSearch(int arr[], int count_, int key);
 combined rec_func (int free_num [], int start_int, int arr_size, int limit);
 int and_merge (int input[],int arr_size ,int shift, int output[]);
 
-const int arr_def_size = 2000;
 
 int main(){
     int data [arr_def_size] = {};
-    for (int i = 0; i < 1000; i++){
-        data [i] = i - 1000;
+    for (int i = 0; i < (base - 1) * n; i++){
+        data [i] = i - (base - 1)*n;
     }
-    for (int i = 1000; i < 2000; i++){
-        data [i] = i - 999;
+    for (int i = (base - 1) * n; i < 2*(base - 1)*n; i++){
+        data [i] = i - (base - 1)*n + 1;
     }
-    combined temp  = rec_func (data, 1, 2000, 88);
-    std::cout << temp.quan << "\n" << temp.array_;
+    combined temp  = rec_func (data, 1, arr_def_size, base);
+    std::cout << temp.quan << "\n" << temp.array_ << " \n" << temp.maxim ;
 }
 
 
@@ -38,14 +42,23 @@ combined rec_func (int free_num [], int start_int, int arr_size, int limit){
         int transl [arr_def_size] = {};
         int tr_size = and_merge(free_num, arr_size, free_num[i], transl);
         combined now = rec_func (transl, free_num[i] + 1, tr_size, limit);
-        if (now.quan > max_.quan){
-            max_ = now;
-            index_of_max = i;
+        if (now.quan >= max_.quan){
+            if (now.quan > max_.quan){
+                max_ = now;
+                index_of_max = i;
+            }else{
+                if (now.maxim < max_.maxim){
+                    max_ = now;
+                }
+            }
         }
     }
     string str;
     if (index_of_max != -1) str = " " + to_string(free_num [index_of_max]);
     else str = "";
+    if (max_.quan == 1){
+        max_.maxim = free_num [index_of_max];
+    }
     max_.quan++;
     max_.array_ = max_.array_ + str;
     return max_;
