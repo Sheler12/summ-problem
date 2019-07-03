@@ -1,5 +1,8 @@
 #include "iostream"
 #include "math.h"
+#include <stdio.h>
+#include <time.h>
+#include <fstream>
 
 using namespace std;
 
@@ -9,85 +12,113 @@ struct combined {
     int maxim;
 };
 
-const int base = 87;
-const int n = 10;
-const int arr_def_size = 1500;
+const int base = 85;
+const int n = 9;
+const int arr_def_size = 200;
+int now_in_rec [n + 1] = {};
+int glob_counter = 0;
 
 
 int BinSearch(int arr[], int count_, int key);
-combined rec_func (int free_num [], int start_int, int arr_size, int limit);
+void rec_func_copy( int free_num [], int start_int, int arr_size, int limit, int depth);
+void rec_func (int free_num [], int start_int, int arr_size, int limit, int depth);
 int and_merge (int input[],int arr_size ,int shift, int output[]);
+
+ofstream fout;
 
 
 int main(){
+    fout.open ("c:\\C++\\Files\\prob.txt");
+    if (!fout) {
+        cout << "Файл не открыт\n\n";
+        for (int i = 0; i < 100; i--);
+        return -1;
+    }
     int data [arr_def_size] = {};
-    for (int i = 0; i < arr_def_size/2; i++){
-        data [i] = i - arr_def_size/2;
+    for (int i = 0; i < arr_def_size - 1; i++){
+        data [i] = i + 1;
     }
-    for (int i = arr_def_size/2; i < arr_def_size; i++){
-        data [i] = i - arr_def_size/2 + 1;
-    }
-    for (int i = 0; i < arr_def_size; i++){
-        //std::cout << data [i] << " ";
-    }
-    combined temp  = rec_func (data, 1, arr_def_size, base);
-    std::cout <<temp.quan << "\n" ;
-    for (int i = 1; i < temp.array_.size(); i++){
-        std::cout << temp.array_[i];
-    }
-    std::cout << "\n" << temp.maxim;
-
+    now_in_rec [0] = 1;
+    rec_func_copy (data, 1, arr_def_size - 1, base, 0);
+    /*int data[] = {1 , 2 , 3, 5, 7, 10, 13 , 15};
+    int data2 [8] = {};
+    std::cout << and_merge(data, 8, 3, data2) << "\n";
+    for (int i = 0; i < 8; i++){
+        std::cout << data2[i] << " ";
+    }*/
 }
 
-
-combined rec_func (int free_num [], int start_int, int arr_size, int limit){
-    //std::cout << "Entered:";
-    for (int i = 0; i < arr_size; i++){
-        //std::cout << free_num [i] << " ";
-    }
-    //std::cout <<"\n";
+void rec_func_copy (int free_num [], int start_int, int arr_size, int limit, int depth){
     int start_place = BinSearch(free_num, arr_size, start_int);
-    combined max_;
     int index_of_max = -1;
-    max_.array_ = "";
-    max_.quan = 0;
-    for (int i = start_place; free_num [i] < limit; i++){
-        int transl [arr_def_size] = {};
-        int tr_size = and_merge(free_num, arr_size, free_num[i], transl);
-        //std::cout << "Gone with " << free_num [i] <<"\n";
-        combined now = rec_func (transl, free_num[i] + 1, tr_size, limit);
-        if (now.quan >= max_.quan){
-            if (now.quan > max_.quan){
-                max_ = now;
-                index_of_max = i;
+    int transl [arr_def_size];
+    int tr_size;
+    if (arr_size != 0){
+        for (int i = start_place; free_num [i] < limit; i++){
+            std::cout << free_num[i] << " ";
+            time_t seconds = time(NULL);
+            tm* timeinfo = localtime(&seconds);
+            cout << (*timeinfo).tm_hour << ":";
+            if ((*timeinfo).tm_min < 10){
+                cout << 0 <<(*timeinfo).tm_min;
             }else{
-                if (now.maxim < max_.maxim){
-                    max_ = now;
-                    index_of_max = i;
-                }
+                cout <<(*timeinfo).tm_min;
             }
+            if ((*timeinfo).tm_sec < 10){
+                cout << ":" << 0 <<(*timeinfo).tm_sec << "\n";
+            }else{
+                cout << ":" <<(*timeinfo).tm_sec << "\n";
+            }
+            tr_size = and_merge(free_num, arr_size, free_num[i], transl);
+            now_in_rec [depth] = free_num [i];
+            rec_func (transl, free_num[i] + 1, tr_size, limit, depth + 1);
+            now_in_rec [depth] = -1;
         }
+    }
+    if (depth == n - 1){
+        glob_counter++;
+        for (int i = 0; i < n - 1; i++){
+            fout << now_in_rec [i] << " ";
+        }
+        fout << "\n";
+    }
+}
+
+void rec_func (int free_num [], int start_int, int arr_size, int limit, int depth){
+    int start_place = BinSearch(free_num, arr_size, start_int);
+    int index_of_max = -1;
+    int transl [arr_def_size];
+    int tr_size;
+    if (arr_size != 0){
+        for (int i = start_place; free_num [i] < limit; i++){
+            tr_size = and_merge(free_num, arr_size, free_num[i], transl);
+            now_in_rec [depth] = free_num [i];
+            rec_func (transl, free_num[i] + 1, tr_size, limit, depth + 1);
+            now_in_rec [depth] = -1;
+        }
+    }
+    if (depth == n - 1){
+        glob_counter++;
+        for (int i = 0; i < n - 1; i++){
+            fout << now_in_rec [i] << " ";
+        }
+        fout << "\n";
+        cout << glob_counter <<"\n";
     }
     string str;
     if (index_of_max != -1){
-            str = " " + to_string(free_num [index_of_max]);
+        str = " " + to_string(free_num [index_of_max]);
     }else{
         str = "";
     }
-    max_.quan++;
-    if (max_.quan == 2){
-        max_.maxim = free_num [index_of_max];
-    }
-    max_.array_ = max_.array_ + str;
-    //std::cout << "Finised with" << max_.array_ << "\n";
-    return max_;
 }
 
 int BinSearch(int arr [], int border, int key) {
   int l = 0;
   int u = border - 1;
+  int m;
   while (l <= u) {
-    int m = (l + u) / 2;
+    m = (l + u) / 2;
     if (arr[m] == key) return m;
     if (arr[m] < key) l = m + 1;
     if (arr[m] > key) u = m - 1;
@@ -96,49 +127,34 @@ int BinSearch(int arr [], int border, int key) {
 }
 
 int and_merge (int input[],int arr_size ,int shift, int output[]){
-    int auxiliary1 [arr_def_size] = {};
-    int auxiliary2 [arr_def_size] = {};
-    int temp_container [arr_def_size] = {};
-    int counter_a1 = 0;
-    int counter_a2 = 0;
-    int counter_temp = 0;
-    int counter_inp = 0;
+    int auxiliary [arr_def_size] = {};
+    int counter_au = 0;
     int counter_out = 0;
     for (int i = 0; i < arr_size; i++){
-        auxiliary1 [i] = input [i] + shift;
-        auxiliary2 [i] = input [i] - shift;
+        auxiliary [input [i]] = 1;
     }
-    while ((counter_a1 != arr_size) and (counter_a2 != arr_size)){
-        if (auxiliary1[counter_a1] > auxiliary2[counter_a2]){
-            counter_a2++;
-        }else{
-            if (auxiliary1[counter_a1] < auxiliary2[counter_a2]){
-                counter_a1++;
-            }else{
-                temp_container [counter_temp] = auxiliary1[counter_a1];
-                counter_temp++;
-                counter_a1++;
-                counter_a2++;
+    int flag = 0;
+    int k = 0;
+    int i = 1;
+    for (int i = 0; i < arr_size; i++){
+        flag = 0;
+        k = input[i];
+        if (k + shift < arr_def_size){
+            if (auxiliary [k + shift] == 0){
+                flag = 1;
+            }
+        }
+        if (flag == 0){
+            if (auxiliary [abs(k - shift)] == 0){
+                flag = 1;
+            }
+        }
+        if (flag == 0){
+            output [counter_out] = k;
+            counter_out++;
+        }
+    }
 
-            }
-        }
-    }
-    int temp_size = counter_temp;
-    counter_temp = 0;
-    while ((counter_temp != temp_size) and (counter_inp != arr_size)){
-        if (temp_container[counter_temp] > input[counter_inp]){
-            counter_inp++;
-        }else{
-            if (temp_container[counter_temp] < input[counter_inp]){
-                counter_temp++;
-            }else{
-                output [counter_out] = input[counter_inp];
-                counter_temp++;
-                counter_inp++;
-                counter_out++;
-            }
-        }
-    }
     return counter_out;
 }
 
